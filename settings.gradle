@@ -1,0 +1,4 @@
+include "shared:shared-core", "shared:shared-hibernate", "shared:shared-oauth","shared:shared-spring-jdbc","shared:shared-test","shared:shared-web"
+include "apps:module"
+include "apps:webapp","apps:webapi"
+include "apps:app-gen"

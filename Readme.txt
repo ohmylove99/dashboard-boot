@@ -1,0 +1,1 @@
+private static Logger logger = LoggerFactory.getLogger(PropertiesLoader.class);

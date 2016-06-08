@@ -1,0 +1,62 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+	default-lazy-init="true">
+
+	<description>Email</description>
+
+	<bean id="simpleMailService" class="org.octopus.dashboard.service.email.MailService">
+		<property name="mailSender" ref="mailSender" />
+	</bean>
+
+	<bean id="mimeMailService"
+		class="org.octopus.dashboard.service.recruit.RecruitMailService">
+		<property name="mailSender" ref="mailSender" />
+		<property name="freemarkerConfiguration" ref="freemarkerConfiguration" />
+		<property name="textTemplate">
+			<value><![CDATA[
+			]]></value>
+		</property>
+	</bean>
+
+
+	<bean id="freemarkerConfiguration"
+		class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
+		<property name="templateLoaderPath" value="classpath:/email" />
+	</bean>
+
+	<beans profile="production">
+		<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+			<property name="host" value="smtp.gmail.com" />
+			<property name="username" value="demo@gmail.com" />
+			<property name="password" value="demoforyou" />
+			<property name="defaultEncoding" value="UTF-8" />
+			<property name="javaMailProperties">
+				<props>
+					<prop key="mail.smtp.auth">true</prop>
+					<prop key="mail.smtp.starttls.enable">true</prop>
+				</props>
+			</property>
+		</bean>
+	</beans>
+
+	<beans profile="development,functional,test">
+		<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+			<property name="host" value="localhost" />
+			<property name="port" value="${mailserver.port}" />
+			<property name="username" value="greenmail@localhost.com" />
+			<property name="password" value="greenmail" />
+			<property name="defaultEncoding" value="UTF-8" />
+			<property name="javaMailProperties">
+				<props>
+					<prop key="mail.smtp.auth">true</prop>
+				</props>
+			</property>
+		</bean>
+
+		<bean id="greenmail" class="org.springside.modules.test.mail.MailServerSimulator"
+			lazy-init="false">
+			<property name="port" value="${mailserver.port}" />
+		</bean>
+	</beans>
+</beans>
