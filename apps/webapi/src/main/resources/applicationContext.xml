@@ -154,12 +154,12 @@
 			<property name="password" value="${jdbc.password}" />
 		</bean>
 
-		<!-- -->
+		<!-- 
 		<jdbc:initialize-database data-source="dataSource"
 			ignore-failures="ALL">
 			<jdbc:script location="classpath:sql/mysql/schema.sql" />
 			<jdbc:script location="classpath:data/mysql/import-data.sql"
 				encoding="UTF-8" />
-		</jdbc:initialize-database>
+		</jdbc:initialize-database>-->
 	</beans>
 </beans>

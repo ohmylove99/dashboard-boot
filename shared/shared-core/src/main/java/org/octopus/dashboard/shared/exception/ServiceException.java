@@ -1,21 +1,12 @@
 package org.octopus.dashboard.shared.exception;
 
 public class ServiceException extends RuntimeException {
-	private static final long serialVersionUID = -5501169657236500900L;
 
-	public ServiceException() {
-		super();
-	}
+	private static final long serialVersionUID = 3050055243620412866L;
+	public ErrorCode errorCode;
 
-	public ServiceException(String message) {
+	public ServiceException(String message, ErrorCode errorCode) {
 		super(message);
-	}
-
-	public ServiceException(Throwable cause) {
-		super(cause);
-	}
-
-	public ServiceException(String message, Throwable cause) {
-		super(message, cause);
+		this.errorCode = errorCode;
 	}
 }

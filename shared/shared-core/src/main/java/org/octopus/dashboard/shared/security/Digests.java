@@ -2,6 +2,7 @@ package org.octopus.dashboard.shared.security;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -14,6 +15,14 @@ public class Digests {
 	private static final String MD5 = "MD5";
 
 	private static SecureRandom random = new SecureRandom();
+
+	public static byte[] sha1(String input) {
+		return digest(input.getBytes(Charset.forName("UTF-8")), SHA1, null, 1);
+	}
+
+	public static byte[] sha1(String input, Charset charset) {
+		return digest(input.getBytes(charset), SHA1, null, 1);
+	}
 
 	public static byte[] sha1(byte[] input) {
 		return digest(input, SHA1, null, 1);

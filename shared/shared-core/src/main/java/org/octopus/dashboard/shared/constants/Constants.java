@@ -1,10 +1,14 @@
 package org.octopus.dashboard.shared.constants;
 
+import java.nio.charset.Charset;
+
 public final class Constants {
 
 	private Constants() {
 		// hide me
 	}
+
+	public static final Charset UTF8 = Charset.forName("UTF-8");
 
 	// ~ Static fields/initializers
 	// =============================================
