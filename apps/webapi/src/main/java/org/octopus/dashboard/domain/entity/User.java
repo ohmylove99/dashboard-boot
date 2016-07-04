@@ -1,7 +1,7 @@
 package org.octopus.dashboard.domain.entity;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -31,8 +31,7 @@ public class User implements Serializable {
 	private String name;
 	private String plainPassword;
 	private String password;
-	private Timestamp registerDate;
-	private String salt;
+	private Date registerDate;
 	private List<Task> tasks;
 	private List<Role> roles;
 
@@ -85,20 +84,12 @@ public class User implements Serializable {
 	}
 
 	@Column(name = "register_date")
-	public Timestamp getRegisterDate() {
+	public Date getRegisterDate() {
 		return this.registerDate;
 	}
 
-	public void setRegisterDate(Timestamp registerDate) {
+	public void setRegisterDate(Date registerDate) {
 		this.registerDate = registerDate;
-	}
-
-	public String getSalt() {
-		return this.salt;
-	}
-
-	public void setSalt(String salt) {
-		this.salt = salt;
 	}
 
 	// bi-directional many-to-one association to Task

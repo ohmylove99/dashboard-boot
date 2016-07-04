@@ -1,22 +1,22 @@
 package org.octopus.dashboard.service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
-import org.octopus.dashboard.domain.Account;
 import org.octopus.dashboard.domain.entity.Role;
 import org.octopus.dashboard.domain.entity.User;
 import org.octopus.dashboard.repository.RoleDao;
 import org.octopus.dashboard.repository.UserDao;
+import org.octopus.dashboard.shared.constants.Constants;
 import org.octopus.dashboard.shared.exception.ErrorCode;
 import org.octopus.dashboard.shared.exception.ServiceException;
-import org.octopus.dashboard.shared.security.Digests;
-import org.octopus.dashboard.shared.utils.Encodes;
 import org.octopus.dashboard.shared.utils.Ids;
+import org.octopus.dashboard.shared.utils.PasswordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +61,7 @@ public class AccountService {
 			throw new ServiceException("User not exist", ErrorCode.UNAUTHORIZED);
 		}
 
-		if (!user.getPassword().equals(hashPassword(password))) {
+		if (!user.getPassword().equals(PasswordUtils.hashPassword(password))) {
 			throw new ServiceException("Password wrong", ErrorCode.UNAUTHORIZED);
 		}
 
@@ -127,9 +127,10 @@ public class AccountService {
 		user = new User();
 		user.setLoginName(loginName);
 		user.setName(name);
-		user.setPassword(hashPassword(password));
+		user.setPassword(PasswordUtils.hashPassword(password));
+		user.setRegisterDate(new Date());
 
-		Role role = roleDao.findOne((Long) Account.Role_User_Key);
+		Role role = roleDao.findOne((Long) Constants.Role_User_Key);
 		List<Role> roles = new ArrayList<Role>();
 		roles.add(role);
 		user.setRoles(roles);
@@ -137,7 +138,4 @@ public class AccountService {
 		userDao.save(user);
 	}
 
-	protected static String hashPassword(String password) {
-		return Encodes.encodeBase64(Digests.sha1(password));
-	}
 }

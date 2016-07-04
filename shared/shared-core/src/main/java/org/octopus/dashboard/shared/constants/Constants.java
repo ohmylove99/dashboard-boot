@@ -59,4 +59,12 @@ public final class Constants {
 	 */
 	public static final String AVAILABLE_ROLES = "availableRoles";
 
+	/**
+	 * key mapping in table for user/roles
+	 */
+	public static final Long Supper_User_Key = 1L;
+	public static final Long Role_Admin_Key = 1L;
+	public static final Long Role_User_Key = 2L;
+	public static final Long Role_Readonly_Key = 3L;
+
 }

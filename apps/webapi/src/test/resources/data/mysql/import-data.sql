@@ -5,7 +5,7 @@ truncate db_role;
 truncate db_task;
 
 
-insert into db_user (id, login_name, name, password, salt, register_date) values(1,'admin','Admin','0DPiKuNIrrVmD8IUCuw1hQxNqZc=','7efbd59d9741d34f','2012-06-04 01:00:00');
+insert into db_user (id, login_name, name, password, register_date) values(1,'admin','Admin','0DPiKuNIrrVmD8IUCuw1hQxNqZc=','2012-06-04 01:00:00');
 
 insert into db_role (id, name) values(1,'admin');
 insert into db_role (id, name) values(2,'user');

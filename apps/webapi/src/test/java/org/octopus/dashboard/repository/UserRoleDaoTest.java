@@ -4,8 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,15 +14,18 @@ import org.octopus.dashboard.domain.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.test.context.jdbc.SqlConfig;
+import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = BootApiApplication.class)
 @DirtiesContext
-public class UserRoleDaoTest extends AbstractJUnit4SpringContextTests {
-	@PersistenceContext
-	private EntityManager em;
+@Rollback(true)
+@SqlConfig(transactionManager = "transactionManager")
+public class UserRoleDaoTest extends AbstractTransactionalJUnit4SpringContextTests {
+
 	@Autowired
 	private UserDao userDao;
 	@Autowired
@@ -43,6 +45,13 @@ public class UserRoleDaoTest extends AbstractJUnit4SpringContextTests {
 		assertThat(roles).hasSize(3);
 		Role role = roleDao.findByName("admin");
 		assertThat(role.getId()).isEqualTo(1);
+	}
 
+	@Test
+	@Transactional
+	public void findChild() {
+		User user = userDao.findByLoginName("admin");
+		assertThat(user.getRoles()).hasSize(1);
+		assertThat(user.getRoles().get(0).getName()).isEqualToIgnoringCase("admin");
 	}
 }
