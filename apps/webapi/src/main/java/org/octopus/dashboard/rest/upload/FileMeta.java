@@ -11,6 +11,15 @@ public class FileMeta {
 	private String fileSize;
 	private String fileType;
 	private String fileLocation;
+	private String fileLink;
+
+	public String getFileLink() {
+		return fileLink;
+	}
+
+	public void setFileLink(String fileLink) {
+		this.fileLink = fileLink;
+	}
 
 	private byte[] bytes;
 
