@@ -4,6 +4,10 @@ drop table if exists db_user2role;
 
 drop table if exists db_task;
 
+drop table if exists db_upload;
+
+drop table if exists db_upload_mapping;
+
 create table db_user (
 	id bigint auto_increment,
 	login_name varchar(64) not null unique,
@@ -31,5 +35,24 @@ create table db_task (
 	title varchar(128) not null,
 	description varchar(255),
 	user_id bigint not null,
+    primary key (id)
+) engine=InnoDB;
+
+create table db_upload (
+	id bigint auto_increment,
+	file_name varchar(512) not null,
+	file_link varchar(512),
+	file_location varchar(512) not null,
+	file_size varchar(512) not null,
+	file_type varchar(128) not null,
+	content MEDIUMBLOB,
+    primary key (id)
+) engine=InnoDB;
+
+create table db_upload_mapping (
+	id bigint auto_increment,
+	table_name varchar(128) not null,
+	table_id bigint,
+	upload_id bigint,
     primary key (id)
 ) engine=InnoDB;

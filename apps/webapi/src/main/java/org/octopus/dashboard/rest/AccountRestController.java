@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 public class AccountRestController {
+	@SuppressWarnings("unused")
 	private static Logger logger = LoggerFactory.getLogger(AccountRestController.class);
 
 	@Autowired

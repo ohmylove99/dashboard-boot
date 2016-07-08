@@ -12,7 +12,7 @@
 	default-lazy-init="true">
 
 	<description>Spring Common</description>
-	<import resource="email/applicationContext-email.xml" />
+	
 	
 	<bean id="messageSource"
 		class="org.springframework.context.support.ResourceBundleMessageSource">
@@ -32,7 +32,7 @@
 		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
 		<property name="dataSource" ref="dataSource" />
 		<property name="jpaVendorAdapter" ref="hibernateJpaVendorAdapter" />
-		<property name="packagesToScan" value="org.octopus.dashboard.model" />
+		<property name="packagesToScan" value="org.octopus.dashboard.domain.entity" />
 		<property name="jpaProperties">
 			<props>
 				<prop key="hibernate.show_sql">true</prop>
@@ -56,7 +56,7 @@
 	</bean>
 
 	<!-- Spring Data Jpa -->
-	<jpa:repositories base-package="org.octopus.dashboard.dao.recruit"
+	<jpa:repositories base-package="org.octopus.dashboard.repository"
 		repository-impl-postfix="Impl" transaction-manager-ref="transactionManager"
 		entity-manager-factory-ref="entityManagerFactory" />
 
@@ -87,8 +87,8 @@
 			<property name="password" value="${jdbc.password}" />
 
 			<!-- Connection Pooling Info -->
-			<property name="maxActive" value="${jdbc.pool.maxActive}" />
-			<property name="maxIdle" value="${jdbc.pool.maxIdle}" />
+			<property name="maxActive" value="10" />
+			<property name="maxIdle" value="1" />
 			<property name="minIdle" value="0" />
 			<property name="defaultAutoCommit" value="false" />
 		</bean>
