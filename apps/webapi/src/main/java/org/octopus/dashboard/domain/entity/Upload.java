@@ -1,6 +1,7 @@
 package org.octopus.dashboard.domain.entity;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,6 +11,8 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 /**
  * The persistent class for the db_role database table.
@@ -39,6 +42,13 @@ public class Upload implements Serializable {
 
 	@Column(name = "file_type")
 	private String fileType;
+
+	@Column(name = "update_by")
+	private String updateBy;
+
+	@Column(name = "update_time")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date updateTime;
 
 	public Upload() {
 	}
@@ -101,4 +111,19 @@ public class Upload implements Serializable {
 		this.fileType = fileType;
 	}
 
+	public String getUpdateBy() {
+		return updateBy;
+	}
+
+	public void setUpdateBy(String updateBy) {
+		this.updateBy = updateBy;
+	}
+
+	public Date getUpdateTime() {
+		return updateTime;
+	}
+
+	public void setUpdateTime(Date updateTime) {
+		this.updateTime = updateTime;
+	}
 }

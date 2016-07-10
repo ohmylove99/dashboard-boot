@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daniel.uy - Online Code Demos</title>
+
+<!-- Bootstrap -->
+<link href="bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="css/uploader.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/demo.css" rel="stylesheet" />
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body role="document">
+
+
+
+	<div class="container demo-wrapper">
+
+		<div class="row demo-columns">
+			<div class="col-md-6">
+				<!-- D&D Zone-->
+				<div id="drag-and-drop-zone" class="uploader">
+					<div>Drag &amp; Drop Images Here</div>
+					<div class="browser">
+						<label> <span>Click to open the file Browser</span> <input
+							type="file" name="files[]" multiple="multiple"
+							title='Click to add Images'>
+						</label>
+					</div>
+					<div class="panel-body demo-panel-files" id='demo-files'>
+						<span class="demo-note">No Files have been selected/droped
+							yet...</span>
+					</div>
+				</div>
+				<!-- /D&D Zone -->
+
+
+			</div>
+		</div>
+
+	</div>
+
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="js/jquery-1.10.1.min.js"></script>
+	<script src="js/jquery-migrate-1.2.1.min.js"></script>
+	<!-- Include all compiled plugins (below), or include individual files as needed
+    <script src="bootstrap/3.1.0/js/bootstrap.min.js"></script> -->
+
+	<script type="text/javascript" src="js/demo.min.js"></script>
+	<script type="text/javascript" src="js/dmuploader.min.js"></script>
+
+	<script type="text/javascript">
+		$('#drag-and-drop-zone').dmUploader({
+			url : 'http://localhost:8080/webapi/api/upload',
+			url : 'http://localhost:8080/webapi/api/upload/jason',
+			dataType : 'json',
+			onBeforeUpload : function(id) {
+				$.danidemo.updateFileStatus(id, 'default', 'Uploading...');
+			},
+			onNewFile : function(id, file) {
+				$.danidemo.addFile('#demo-files', id, file);
+			},
+			onUploadProgress : function(id, percent) {
+				var percentStr = percent + '%';
+				$.danidemo.updateFileProgress(id, percentStr);
+			},
+			onUploadSuccess : function(id, data) {
+				$.danidemo.updateFileStatus(id, 'success', 'Upload Complete');
+				$.danidemo.updateFileProgress(id, '100%');
+			},
+			onUploadError : function(id, message) {
+				$.danidemo.updateFileStatus(id, 'error', message);
+			}
+		});
+	</script>
+
+</body>
+</html>

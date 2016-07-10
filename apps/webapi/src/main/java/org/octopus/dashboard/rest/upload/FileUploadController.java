@@ -1,8 +1,10 @@
 package org.octopus.dashboard.rest.upload;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -18,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
@@ -32,85 +33,64 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 @Controller
-@PropertySource("classpath:application-${spring.profiles.default}.properties")
-@PropertySources({ @PropertySource("classpath:application.properties"),
-		@PropertySource(value = "classpath:application-${spring.profiles.default}.properties", ignoreResourceNotFound = true), })
+@PropertySources({ @PropertySource("classpath:folders.properties"),
+		@PropertySource(value = "classpath:folders-${spring.profiles.default}.properties", ignoreResourceNotFound = true),
+		@PropertySource("classpath:application.properties"),
+		@PropertySource(value = "classpath:application-${spring.profiles.default}.properties", ignoreResourceNotFound = true) })
 public class FileUploadController implements InitializingBean {
 
 	private static Logger logger = LoggerFactory.getLogger(AccountRestController.class);
+
 	private LinkedList<FileMeta> files = new LinkedList<FileMeta>();
-	private FileMeta fileMeta;
+
 	@Autowired
 	@Qualifier("foldersConfig")
 	private PropertiesFactoryBean foldersConfig;
-	private String uploadPath;
-	private String downloadPath;
+
+	// @Value("${uploadFolder}")
+	private String uploadFolder;
+
+	// @Value("${downloadFolder}")
+	private String downloadFolder;
+
 	@Autowired
 	private UploadService uploadServcie;
 
+	/**
+	 * if success fileMeta:status:ok;else status:fail
+	 * 
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 	@RequestMapping(value = "/api/upload", method = RequestMethod.POST)
 	public @ResponseBody LinkedList<FileMeta> upload(MultipartHttpServletRequest request,
 			HttpServletResponse response) {
 
-		// 1. build an iterator
 		Iterator<String> itr = request.getFileNames();
-		MultipartFile mpf = null;
-
-		// 2. get each file
 		while (itr.hasNext()) {
-
-			// 2.1 get next MultipartFile
-			mpf = request.getFile(itr.next());
-			logger.info(mpf.getOriginalFilename() + " uploaded! " + files.size());
-
-			// 2.2 if files > 10 remove the first from the list
-			if (files.size() >= 10)
-				files.pop();
-
-			// 2.3 create new fileMeta
-			fileMeta = new FileMeta();
-			fileMeta.setFileName(mpf.getOriginalFilename());
-			fileMeta.setFileSize(mpf.getSize() / 1024 + " Kb");
-			fileMeta.setFileType(mpf.getContentType());
-
-			try {
-				fileMeta.setBytes(mpf.getBytes());
-				String fileLocation = uploadPath + "/" + Ids.uuid2() + "/" + mpf.getOriginalFilename();
-				logger.debug("trying to save file to:" + fileLocation);
-				File file = new File(fileLocation);
-				if (!file.exists()) {
-					FileUtils.forceMkdir(file);
-				}
-				FileCopyUtils.copy(mpf.getBytes(),
-						new FileOutputStream(fileLocation + "/" + mpf.getOriginalFilename()));
-				logger.debug("file save to:" + fileLocation);
-
-				Upload upload = fileMeta.buildEntity();
-				upload.setFileLocation(fileLocation);
-
-				Upload result = uploadServcie.save(upload);
-
-				result.setFileLink("/api/upload/" + result.getId());
-				result.setFileLocation(fileLocation);
-
-				fileMeta.setId(result.getId());
-
-				uploadServcie.save(result);
-			} catch (IOException e) {
-				logger.error(e.getMessage());
-			}
-			// 2.4 add to files
-			files.add(fileMeta);
-
+			MultipartFile mpf = request.getFile(itr.next());
+			uploadFile(mpf);
 		}
 
 		return files;
+	}
 
+	@RequestMapping(value = "/api/upload/{userId}", method = RequestMethod.POST)
+	public @ResponseBody LinkedList<FileMeta> upload(@PathVariable("userId") String userId,
+			MultipartHttpServletRequest request, HttpServletResponse response) {
+
+		Iterator<String> itr = request.getFileNames();
+		while (itr.hasNext()) {
+			MultipartFile mpf = request.getFile(itr.next());
+			uploadFile(mpf, userId);
+		}
+
+		return files;
 	}
 
 	@RequestMapping(value = "/api/upload/{id}", method = RequestMethod.GET)
 	public void get(HttpServletResponse response, @PathVariable Long id) {
-
 		try {
 			Upload upload = uploadServcie.get(id);
 			response.setContentType(upload.getFileType());
@@ -121,11 +101,83 @@ public class FileUploadController implements InitializingBean {
 		}
 	}
 
+	// =============================== Private
+
+	private void uploadFile(MultipartFile mpf) {
+		uploadFile(mpf, null);
+	}
+
+	private void uploadFile(MultipartFile mpf, String userId) {
+
+		logger.info(mpf.getOriginalFilename() + " uploaded! " + files.size());
+
+		limitFilesQueue();
+		FileMeta fileMeta = buildFileMeta(mpf);
+		try {
+
+			fileMeta.setBytes(mpf.getBytes());
+
+			String fileLocation = saveFileToDisk(mpf);
+
+			saveFileToDB(fileLocation, fileMeta, userId);
+
+			fileMeta.setStatus("ok");
+
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+			fileMeta.setStatus("fail");
+		}
+
+		files.add(fileMeta);
+	}
+
+	private FileMeta buildFileMeta(MultipartFile mpf) {
+		FileMeta fileMeta = new FileMeta();
+		fileMeta.setFileName(mpf.getOriginalFilename());
+		fileMeta.setFileSize(mpf.getSize() / 1024 + " Kb");
+		fileMeta.setFileType(mpf.getContentType());
+		return fileMeta;
+	}
+
+	private void saveFileToDB(String fileLocation, FileMeta fileMeta, String userId) {
+		Upload upload = fileMeta.buildEntity();
+		upload.setFileLocation(fileLocation);
+		upload.setUpdateTime(new Date());
+		upload.setUpdateBy(userId);
+		Upload result = uploadServcie.save(upload);
+
+		result.setFileLink("/api/upload/" + result.getId());
+		result.setFileLocation(fileLocation);
+
+		fileMeta.setId(result.getId());
+		result.setUpdateTime(new Date());
+		result.setUpdateBy(userId);
+		uploadServcie.save(result);
+	}
+
+	private String saveFileToDisk(MultipartFile mpf) throws IOException, FileNotFoundException {
+		String fileLocation = uploadFolder + "/" + Ids.uuid2() + "/" + mpf.getOriginalFilename();
+		logger.debug("trying to save file to:" + fileLocation);
+
+		File file = new File(fileLocation);
+		if (!file.exists()) {
+			FileUtils.forceMkdir(file);
+		}
+
+		FileCopyUtils.copy(mpf.getBytes(), new FileOutputStream(fileLocation + "/" + mpf.getOriginalFilename()));
+		logger.debug("file save to:" + fileLocation);
+		return fileLocation;
+	}
+
+	// if files > 10 remove the first from the list
+	private void limitFilesQueue() {
+		if (files.size() >= 10)
+			files.pop();
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		uploadPath = foldersConfig.getObject().getProperty("uploadFolder");
-		downloadPath = foldersConfig.getObject().getProperty("uploadFolder");
-		logger.debug("set uploadPath:" + uploadPath);
-		logger.debug("set downloadPath:" + downloadPath);
+		uploadFolder = foldersConfig.getObject().getProperty("uploadFolder");
+		downloadFolder = foldersConfig.getObject().getProperty("downloadFolder");
 	}
 }

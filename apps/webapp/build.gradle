@@ -16,5 +16,5 @@ targetCompatibility = 1.6
 version = '2.5'
 
 dependencies {
-
+	compile group: 'org.springframework', name: 'spring-web', version:'4.2.5.RELEASE'
 }

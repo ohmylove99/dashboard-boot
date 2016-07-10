@@ -12,6 +12,7 @@ public class FileMeta {
 	private String fileType;
 	private String fileLocation;
 	private String fileLink;
+	private String status;
 
 	public String getFileLink() {
 		return fileLink;
@@ -69,6 +70,14 @@ public class FileMeta {
 
 	public void setFileLocation(String fileLocation) {
 		this.fileLocation = fileLocation;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 	public Upload buildEntity() {

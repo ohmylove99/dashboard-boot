@@ -46,6 +46,8 @@ create table db_upload (
 	file_size varchar(512) not null,
 	file_type varchar(128) not null,
 	content MEDIUMBLOB,
+	update_time timestamp default now(),
+	update_by varchar(64),
     primary key (id)
 ) engine=InnoDB;
 
