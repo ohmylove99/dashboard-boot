@@ -41,6 +41,22 @@ public class UploadMapping implements Serializable {
 		this.id = id;
 	}
 
+	public String getTableName() {
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	public Long getTableId() {
+		return tableId;
+	}
+
+	public void setTableId(Long tableId) {
+		this.tableId = tableId;
+	}
+
 	// bi-directional many-to-one association to User
 	@ManyToOne
 	@JoinColumn(name = "upload_id")

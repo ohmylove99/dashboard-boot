@@ -11,7 +11,9 @@ import java.util.LinkedList;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.octopus.dashboard.domain.entity.Upload;
+import org.octopus.dashboard.domain.entity.UploadMapping;
 import org.octopus.dashboard.rest.AccountRestController;
 import org.octopus.dashboard.service.UploadService;
 import org.octopus.dashboard.shared.utils.Ids;
@@ -26,8 +28,10 @@ import org.springframework.context.annotation.PropertySources;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -64,13 +68,14 @@ public class FileUploadController implements InitializingBean {
 	 * @return
 	 */
 	@RequestMapping(value = "/api/upload", method = RequestMethod.POST)
-	public @ResponseBody LinkedList<FileMeta> upload(MultipartHttpServletRequest request,
-			HttpServletResponse response) {
+	public @ResponseBody LinkedList<FileMeta> upload(MultipartHttpServletRequest request, HttpServletResponse response,
+			@RequestParam(value = "tableName", required = false) String tableName,
+			@RequestParam(value = "tableId", required = false) Long tableId, @RequestBody UploadMapping uploadMapping) {
 
 		Iterator<String> itr = request.getFileNames();
 		while (itr.hasNext()) {
 			MultipartFile mpf = request.getFile(itr.next());
-			uploadFile(mpf);
+			uploadFile(mpf, tableName, tableId);
 		}
 
 		return files;
@@ -83,7 +88,21 @@ public class FileUploadController implements InitializingBean {
 		Iterator<String> itr = request.getFileNames();
 		while (itr.hasNext()) {
 			MultipartFile mpf = request.getFile(itr.next());
-			uploadFile(mpf, userId);
+			uploadFile(mpf, userId, null, null);
+		}
+
+		return files;
+	}
+
+	@RequestMapping(value = "/api/upload/{userId}/{tableName}-{tableId}", method = RequestMethod.POST)
+	public @ResponseBody LinkedList<FileMeta> upload(@PathVariable("userId") String userId,
+			@PathVariable("tableName") String tableName, @PathVariable("tableId") Long tableId,
+			MultipartHttpServletRequest request, HttpServletResponse response) {
+
+		Iterator<String> itr = request.getFileNames();
+		while (itr.hasNext()) {
+			MultipartFile mpf = request.getFile(itr.next());
+			uploadFile(mpf, userId, tableName, tableId);
 		}
 
 		return files;
@@ -103,11 +122,11 @@ public class FileUploadController implements InitializingBean {
 
 	// =============================== Private
 
-	private void uploadFile(MultipartFile mpf) {
-		uploadFile(mpf, null);
+	private void uploadFile(MultipartFile mpf, String tableName, Long tableId) {
+		uploadFile(mpf, null, tableName, tableId);
 	}
 
-	private void uploadFile(MultipartFile mpf, String userId) {
+	private void uploadFile(MultipartFile mpf, String userId, String tableName, Long tableId) {
 
 		logger.info(mpf.getOriginalFilename() + " uploaded! " + files.size());
 
@@ -119,16 +138,24 @@ public class FileUploadController implements InitializingBean {
 
 			String fileLocation = saveFileToDisk(mpf);
 
-			saveFileToDB(fileLocation, fileMeta, userId);
+			Upload upd = saveFileToDB(fileLocation, fileMeta, userId);
 
 			fileMeta.setStatus("ok");
+
+			if (!StringUtils.isEmpty(tableName) && (tableId != null && tableId > 0)) {
+				UploadMapping uploadMapping = new UploadMapping();
+				uploadMapping.setTableName(tableName);
+				uploadMapping.setTableId(tableId);
+				uploadMapping.setUpload(upd);
+				uploadServcie.save(uploadMapping);
+			}
 
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			fileMeta.setStatus("fail");
+		} finally {
+			files.add(fileMeta);
 		}
-
-		files.add(fileMeta);
 	}
 
 	private FileMeta buildFileMeta(MultipartFile mpf) {
@@ -139,7 +166,7 @@ public class FileUploadController implements InitializingBean {
 		return fileMeta;
 	}
 
-	private void saveFileToDB(String fileLocation, FileMeta fileMeta, String userId) {
+	private Upload saveFileToDB(String fileLocation, FileMeta fileMeta, String userId) {
 		Upload upload = fileMeta.buildEntity();
 		upload.setFileLocation(fileLocation);
 		upload.setUpdateTime(new Date());
@@ -152,7 +179,7 @@ public class FileUploadController implements InitializingBean {
 		fileMeta.setId(result.getId());
 		result.setUpdateTime(new Date());
 		result.setUpdateBy(userId);
-		uploadServcie.save(result);
+		return uploadServcie.save(result);
 	}
 
 	private String saveFileToDisk(MultipartFile mpf) throws IOException, FileNotFoundException {
