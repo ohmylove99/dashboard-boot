@@ -5,21 +5,18 @@
 
 	<description>Email</description>
 
-	<bean id="simpleMailService" class="org.octopus.dashboard.service.email.MailService">
-		<property name="mailSender" ref="mailSender" />
-	</bean>
-
-	<bean id="mimeMailService"
-		class="org.octopus.dashboard.service.recruit.RecruitMailService">
+	<bean id="emailService"
+		class="org.octopus.dashboard.service.email.EmailService">
 		<property name="mailSender" ref="mailSender" />
 		<property name="freemarkerConfiguration" ref="freemarkerConfiguration" />
-		<property name="textTemplate">
-			<value><![CDATA[
-			]]></value>
-		</property>
 	</bean>
 
-
+	<bean id="emailMimeService"
+		class="org.octopus.dashboard.service.email.EmailMimeService">
+		<property name="mailSender" ref="mailSender" />
+		<property name="freemarkerConfiguration" ref="freemarkerConfiguration" />
+	</bean>
+	
 	<bean id="freemarkerConfiguration"
 		class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
 		<property name="templateLoaderPath" value="classpath:/email" />

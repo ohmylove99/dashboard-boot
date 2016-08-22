@@ -1,39 +1,52 @@
-package org.octopus.dashboard.rest.email;
+package org.octopus.dashboard.service.email;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import javax.mail.internet.MimeUtility;
 
+import org.apache.commons.lang3.StringUtils;
 import org.octopus.dashboard.domain.email.model.EmailModel;
+import org.octopus.dashboard.domain.email.model.EmailTemplateModel;
 import org.octopus.dashboard.freemarker.FreemarkerTemplate;
 import org.octopus.dashboard.shared.constants.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.stereotype.Component;
 
-@Component
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+
 public class EmailService {
 	private static Logger logger = LoggerFactory.getLogger(EmailService.class);
 
-	@Autowired
 	protected JavaMailSender mailSender;
 
-	@Autowired
-	protected FreemarkerTemplate freemarker;
+	protected Configuration freemarkerConfiguration;
 
-	public void sendMail(EmailModel model) {
-		SimpleMailMessage mail = prepareMessage(model);
-		mail.setText(model.getText());
-
-		mailSender.send(mail);
+	public FreemarkerTemplate buildFreemarker(String templatePath) {
+		FreemarkerTemplate freemarkerTemplate = new FreemarkerTemplate();
+		try {
+			Template template = freemarkerConfiguration.getTemplate(templatePath, Constants.UTF8.name());
+			freemarkerTemplate.setTemplate(template);
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+		}
+		return freemarkerTemplate;
 	}
 
-	public void sendMail(EmailModel model, Object templateModel) {
+	public void sendMail(EmailModel model) {
+		String text = StringUtils.EMPTY;
+		if (model.getEmailTemplateModel() != null && model.getEmailTemplateModel().getTemplatePath() != null) {
+			EmailTemplateModel emailTemplateModel = model.getEmailTemplateModel();
+			FreemarkerTemplate freemarker = buildFreemarker(emailTemplateModel.getTemplatePath());
+			text = freemarker.generateContent(emailTemplateModel.getMap());
+		} else {
+			text = model.getText();
+		}
 		SimpleMailMessage mail = prepareMessage(model);
-		mail.setText(freemarker.generateContent(templateModel));
+		mail.setText(text);
 
 		mailSender.send(mail);
 	}
@@ -61,31 +74,14 @@ public class EmailService {
 			mail.setTo(model.getTos());
 		}
 		if (model.getCcs() == null) {
-			mail.setTo(model.getCc());
+			mail.setCc(model.getCc());
 		} else {
-			mail.setTo(model.getCcs());
+			mail.setCc(model.getCcs());
 		}
 		if (model.getBccs() == null) {
-			mail.setTo(model.getBcc());
+			mail.setBcc(model.getBcc());
 		} else {
-			mail.setTo(model.getBccs());
+			mail.setBcc(model.getBccs());
 		}
 	}
-
-	public FreemarkerTemplate getFreemarker() {
-		return freemarker;
-	}
-
-	public void setFreemarker(FreemarkerTemplate freemarker) {
-		this.freemarker = freemarker;
-	}
-
-	public JavaMailSender getMailSender() {
-		return mailSender;
-	}
-
-	public void setMailSender(JavaMailSender mailSender) {
-		this.mailSender = mailSender;
-	}
-
 }

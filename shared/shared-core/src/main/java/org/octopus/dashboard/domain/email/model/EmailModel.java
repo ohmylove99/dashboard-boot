@@ -1,7 +1,5 @@
 package org.octopus.dashboard.domain.email.model;
 
-import org.springframework.mail.SimpleMailMessage;
-
 public class EmailModel {
 	private String from;
 	private String to;
@@ -12,6 +10,7 @@ public class EmailModel {
 	private String[] bccs;
 	private String subject;
 	private String text;
+	private EmailTemplateModel emailTemplateModel;
 
 	public String getFrom() {
 		return from;
@@ -83,6 +82,14 @@ public class EmailModel {
 
 	public void setText(String text) {
 		this.text = text;
+	}
+
+	public EmailTemplateModel getEmailTemplateModel() {
+		return emailTemplateModel;
+	}
+
+	public void setEmailTemplateModel(EmailTemplateModel emailTemplateModel) {
+		this.emailTemplateModel = emailTemplateModel;
 	}
 
 }

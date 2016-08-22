@@ -1,7 +1,6 @@
 package org.octopus.dashboard.freemarker;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
 import org.octopus.dashboard.shared.constants.Constants;
@@ -67,6 +66,14 @@ public class FreemarkerTemplate implements InitializingBean {
 		return StringUtils.EMPTY;
 	}
 
+	public Template getTemplate() {
+		return template;
+	}
+
+	public void setTemplate(Template template) {
+		this.template = template;
+	}
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (template == null) {
@@ -74,7 +81,6 @@ public class FreemarkerTemplate implements InitializingBean {
 			if (freemarkerConfiguration == null || templatePath == null) {
 				logger.error("missing templatePath or freemarkerConfiguration, can't build template");
 			} else {
-				freemarkerConfiguration.setSettings(buildSettings());
 				if (templateEncoding == null)
 					templateEncoding = Constants.UTF8.name();
 				logger.debug("trying to apply template encoding:" + templateEncoding);
@@ -85,7 +91,7 @@ public class FreemarkerTemplate implements InitializingBean {
 		}
 	}
 
-	private Properties buildSettings() {
+/*	private Properties buildSettings() {
 		Properties settings = new Properties();
 		settings.put("classic_compatible", "true");
 		settings.put("whitespace_stripping", "true");
@@ -101,5 +107,5 @@ public class FreemarkerTemplate implements InitializingBean {
 		settings.put("output_encoding", "UTF-8");
 		settings.put("tag_syntax", "auto_detect");
 		return settings;
-	}
+	}*/
 }
